@@ -1,347 +1,709 @@
+<!-- Chosen Palette: Warm Neutrals (Background: neutral-100/white, Primary: indigo-600/700, Secondary: teal-500/600, Alert: red-500/700) -->
+<!-- Application Structure Plan: Dashboard/Tab-based approach. The content is divided into 3 main views: Overview (Key Stats/Charts), Research (Detailed Data/Methodology), and Game (Interactive Demo). This structure is chosen to separate high-level consumption from deep analysis and practical application, allowing users to choose their exploration path efficiently. The Research tab is further structured with expandable detail sections. -->
+<!-- Visualization & Content Choices: 1. Key Stats: Dynamic Counters (HTML/JS) - Goal: Inform, Interaction: On-load animation. 2. Main Correlation Chart: Scatter Plot (Chart.js/Canvas) - Goal: Relationship, Interaction: Click to focus/detail, Justification: Visually shows correlation between usage and perceived usefulness. 3. Likert Scales: Grouped Bar Charts (Chart.js/Canvas) - Goal: Compare, Interaction: Toggle between dimensions (PU/PEOU), Justification: Clearly presents distribution of student opinions. 4. Detailed Data: Interactive/Sortable HTML Tables - Goal: Organize/Inform, Interaction: Expand/Collapse details, Justification: Presents raw frequency data (N=100) clearly without requiring complex charting. CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tổng Quan: ChatGPT và Giáo dục Ngoại ngữ</title>
-    <!-- Tải Tailwind CSS -->
+    <title>Ứng Dụng Nghiên Cứu Ngoại Ngữ - AI & Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tải Chart.js để vẽ biểu đồ -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* Thiết lập font Inter */
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
-        /* Tùy chỉnh màu sắc Chart.js */
-        .chart-container { position: relative; height: 350px; }
-        .details-summary {
-            cursor: pointer;
-            padding: 1rem;
-            border-bottom: 1px solid #e5e7eb;
-            font-weight: 600;
-            color: #1f2937;
-            display: flex;
-            align-items: center;
-        }
-        .details-content {
-            padding: 1rem;
-            border-top: 1px solid #e5e7eb;
-            background-color: #f9fafb;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-button { transition: all 0.3s; border-radius: 0.5rem 0.5rem 0 0; }
+        .tab-button.active { background-color: #ffffff; color: #4f46e5; border-bottom: 3px solid #4f46e5; }
+        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        .details-summary { padding: 1rem 1.5rem; font-weight: 600; cursor: pointer; display: block; }
+        .details-summary::-webkit-details-marker { display: none; }
+        .details-content { padding: 1.5rem; background-color: #ffffff; }
+        .text-primary { color: #4f46e5; }
+        .text-secondary { color: #14b8a6; }
+        .text-accent-red { color: #ef4444; }
+        .bg-primary-light { background-color: #eef2ff; }
+        /* Responsive Table adjustments */
+        @media (max-width: 768px) {
+            .details-content table { font-size: 0.75rem; }
+            .details-content th, .details-content td { padding-left: 0.25rem; padding-right: 0.25rem; }
+            .details-content table td:first-child { min-width: 150px; }
+            .chart-container { height: 280px; max-height: 300px; }
         }
     </style>
 </head>
-<body>
+<body class="text-gray-800">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-indigo-700">ỨNG DỤNG HỌC NGOẠI NGỮ (AI & GAME)</h1>
+                <nav class="flex space-x-2 sm:space-x-4">
+                    <button id="tab-overview" class="tab-button active text-sm sm:text-base px-3 py-2 text-indigo-700 hover:text-indigo-500">Tổng Quan</button>
+                    <button id="tab-research" class="tab-button text-sm sm:text-base px-3 py-2 text-gray-600 hover:text-indigo-500">Nghiên Cứu</button>
+                    <button id="tab-game" class="tab-button text-sm sm:text-base px-3 py-2 text-gray-600 hover:text-indigo-500">Game Demo</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Overview Tab (Tab 1) -->
+        <div id="content-overview" class="tab-content space-y-8">
+            <!-- Introduction -->
+            <div class="bg-white p-6 sm:p-8 rounded-xl card">
+                <h2 class="text-3xl font-bold mb-4 text-indigo-700">Tổng Quan Nghiên Cứu & Ứng Dụng</h2>
+                <p class="text-gray-600 leading-relaxed">Phần này cung cấp cái nhìn tổng quát về kết quả khảo sát "Thái độ và Nhận thức của học sinh Phổ thông về việc học ngoại ngữ qua ChatGPT" và tóm tắt mô hình ứng dụng game được đề xuất. Dữ liệu khảo sát ($N=100$) được trình bày qua các chỉ số và biểu đồ chính, giúp người dùng nhanh chóng nắm bắt các xu hướng quan trọng.</p>
+            </div>
+
+            <!-- Key Metrics Summary -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Metric 1: PU Score -->
+                <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-indigo-500">
+                    <div class="text-5xl font-extrabold text-indigo-600" id="stat-pu">0.00</div>
+                    <div class="text-lg font-medium text-gray-500 mt-2">Tính Hữu Ích Cảm Nhận </div>
+                    <div class="text-sm text-gray-400 mt-1">Đánh giá cao khả năng Viết.</div>
+                </div>
+                <!-- Metric 2: PEOU Score -->
+                <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-teal-500">
+                    <div class="text-5xl font-extrabold text-teal-600" id="stat-peou">0.00</div>
+                    <div class="text-lg font-medium text-gray-500 mt-2">Tính Dễ Sử Dụng </div>
+                    <div class="text-sm text-gray-400 mt-1">Giao diện đơn giản, dễ thao tác.</div>
+                </div>
+                <!-- Metric 3: Attitude Score -->
+                <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-indigo-300">
+                    <div class="text-5xl font-extrabold text-indigo-400" id="stat-at">0.00</div>
+                    <div class="text-lg font-medium text-gray-500 mt-2">Thái Độ Tích Cực </div>
+                    <div class="text-sm text-gray-400 mt-1">Hứng thú và xem là trải nghiệm thú vị.</div>
+                </div>
+                <!-- Metric 4: Risk Perception -->
+                <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-red-500">
+                    <div class="text-5xl font-extrabold text-red-600" id="stat-erp">0.00</div>
+                    <div class="text-lg font-medium text-gray-500 mt-2">Nhận thức Rủi ro </div>
+                    <div class="text-sm text-gray-400 mt-1">Lo ngại cao về sự phụ thuộc.</div>
+                </div>
+            </div>
+
+            <!-- Main Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Chart 1: PU/PEOU Comparison -->
+                <div class="bg-white p-6 rounded-xl card flex flex-col">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">So sánh Nhận thức (PU vs PEOU)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Biểu đồ so sánh điểm trung bình giữa Tính Hữu Ích và Tính Dễ Sử Dụng cảm nhận. PEOU cao hơn cho thấy nền tảng AI dễ dàng tiếp cận người dùng.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="chart-pu-peou"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Attitude & Risk -->
+                <div class="bg-white p-6 rounded-xl card flex flex-col">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Thái độ và Rủi ro (AT vs ERP)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Mối quan hệ giữa Thái độ tích cực (AT) và mức độ Nhận thức rủi ro (ERP). Sự chênh lệch giữa hai yếu tố này là nền tảng cho hành vi sử dụng.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="chart-at-erp"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Application Summary -->
+            <div class="bg-white p-6 sm:p-8 rounded-xl card border-t-4 border-teal-500">
+                <h2 class="text-3xl font-bold mb-4 text-teal-700">Mô Hình Ứng Dụng Game Hóa</h2>
+                <p class="text-gray-600 leading-relaxed mb-4">Phần này tóm tắt ý tưởng phát triển một ứng dụng học ngoại ngữ tích hợp yếu tố Game hóa, tập trung vào việc **tăng cường kỹ năng Hội thoại (Speaking)** – khía cạnh được đánh giá thấp nhất trong thang đo PU. Ứng dụng sẽ sử dụng AI để tạo kịch bản nhập vai và phản hồi trực tiếp, biến việc học thành một trải nghiệm giải trí, kích thích hành vi đối phó rủi ro (RC) tích cực.</p>
+                <button onclick="changeTab('game')" class="mt-4 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow-md">
+                    Khám phá Game Demo
+                </button>
+            </div>
+        </div>
+
+        <!-- Research Tab (Tab 2) -->
+        <div id="content-research" class="tab-content hidden space-y-8">
+            <!-- Research Container -->
+            <div class="space-y-6">
+                <!-- Introduction -->
+                <div class="bg-white p-6 sm:p-8 rounded-xl card">
+                    <h2 class="text-3xl font-bold mb-4 text-indigo-700">Nghiên Cứu & Phân Tích Chuyên Sâu</h2>
+                    <p class="text-gray-600 leading-relaxed">Phần này cung cấp các bảng dữ liệu khảo sát chi tiết theo từng mục (Item), cùng với các tài liệu và hướng dẫn ứng dụng AI có trách nhiệm, phục vụ cho mục đích phân tích học thuật và đưa ra khuyến nghị.</p>
+                </div>
+                
+                <!-- TÀI LIỆU BỔ SUNG (CHI TIẾT) -->
+                <div class="bg-white rounded-xl card mb-8">
+                    <h2 class="text-2xl font-semibold text-gray-800 p-6 border-b flex items-center">
+                        <span class="mr-2 text-indigo-500"></span> Tài liệu & Hướng dẫn Chi tiết
+                    </h2>
+
+                    <!-- 5.1 DỮ LIỆU KHẢO SÁT CHI TIẾT (UPDATED) -->
+                    <details class="border-b" open>
+                        <summary class="details-summary bg-gray-50 hover:bg-gray-100">Chi tiết Dữ liệu Khảo sát (Theo từng Item - N=100)</summary>
+                        <div class="details-content space-y-6">
+                            <p class="text-sm mb-3 text-gray-600">Dữ liệu tổng hợp (N=100) chi tiết tỷ lệ phản hồi (Thang đo Likert 5 mức: 1=Hoàn toàn Không đồng ý đến 5=Hoàn toàn Đồng ý) cho từng phát biểu.</p>
+                            
+                            <!-- Table 1: PU -->
+                            <h4 class="text-lg font-semibold text-primary">1. Nhận thức về Tính hữu ích (Perceived Usefulness - PU)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phát biểu (PU)</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" title="Hoàn toàn Không đồng ý">(1) %</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" title="Không đồng ý">(2) %</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" title="Bình thường">(3) %</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" title="Đồng ý">(4) %</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" title="Hoàn toàn Đồng ý">(5) %</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trung bình </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                        <tr><td class="px-4 py-3 font-medium">PU4: Cải thiện kỹ năng Viết</td><td class="px-2 py-3 text-center">2%</td><td class="px-2 py-3 text-center">3%</td><td class="px-2 py-3 text-center">10.0%</td><td class="px-2 py-3 text-center">35.0%</td><td class="px-2 py-3 text-center font-bold text-primary">50.0%</td><td class="px-4 py-3 text-center font-bold text-primary">4.25</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">PU2: Hữu ích học từ vựng/ngữ pháp</td><td class="px-2 py-3 text-center">1.0%</td><td class="px-2 py-3 text-center">4.0%</td><td class="px-2 py-3 text-center">15.0%</td><td class="px-2 py-3 text-center font-bold">40.0%</td><td class="px-2 py-3 text-center font-bold text-primary">40.0%</td><td class="px-4 py-3 text-center font-bold text-primary">4.10</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">PU3: Giúp tiết kiệm thời gian</td><td class="px-2 py-3 text-center">3.0%</td><td class="px-2 py-3 text-center">8.0%</td><td class="px-2 py-3 text-center">18.0%</td><td class="px-2 py-3 text-center font-bold">38.0%</td><td class="px-2 py-3 text-center">33.0%</td><td class="px-4 py-3 text-center font-bold text-primary">3.95</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">PU5: Hỗ trợ luyện tập hội thoại (Nói)</td><td class="px-2 py-3 text-center">5.0%</td><td class="px-2 py-3 text-center">12.0%</td><td class="px-2 py-3 text-center">20.0%</td><td class="px-2 py-3 text-center font-bold">35.0%</td><td class="px-2 py-3 text-center">28.0%</td><td class="px-4 py-3 text-center font-bold text-gray-700">3.65</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">PU1: Giúp cải thiện điểm số</td><td class="px-2 py-3 text-center">6.0%</td><td class="px-2 py-3 text-center">15.0%</td><td class="px-2 py-3 text-center">24.0%</td><td class="px-2 py-3 text-center">30.0%</td><td class="px-2 py-3 text-center">25.0%</td><td class="px-4 py-3 text-center font-bold text-gray-700">3.50</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Table 2: PEOU -->
+                            <h4 class="text-lg font-semibold text-secondary mt-6">2. Nhận thức về Tính dễ sử dụng (Perceived Ease of Use - PEOU)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phát biểu (PEOU)</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(1) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(2) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(3) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(4) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(5) %</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trung bình </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                        <tr><td class="px-4 py-3 font-medium">PEOU2: Giao diện thân thiện</td><td class="px-2 py-3 text-center">1.0%</td><td class="px-2 py-3 text-center">2.0%</td><td class="px-2 py-3 text-center">9.0%</td><td class="px-2 py-3 text-center font-bold">45.0%</td><td class="px-2 py-3 text-center font-bold text-secondary">43.0%</td><td class="px-4 py-3 text-center font-bold text-secondary">4.30</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">PEOU1: Rất dễ dàng sử dụng</td><td class="px-2 py-3 text-center">1.0%</td><td class="px-2 py-3 text-center">3.0%</td><td class="px-2 py-3 text-center">12.0%</td><td class="px-2 py-3 text-center font-bold">40.0%</td><td class="px-2 py-3 text-center font-bold text-secondary">44.0%</td><td class="px-4 py-3 text-center font-bold text-secondary">4.20</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">PEOU3: Dễ dàng tìm thấy câu trả lời</td><td class="px-2 py-3 text-center">2.0%</td><td class="px-2 py-3 text-center">5.0%</td><td class="px-2 py-3 text-center">10.0%</td><td class="px-2 py-3 text-center font-bold">48.0%</td><td class="px-2 py-3 text-center">35.0%</td><td class="px-4 py-3 text-center font-bold text-secondary">4.15</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Table 3: AT -->
+                            <h4 class="text-lg font-semibold text-primary mt-6">3. Thái độ sử dụng (Attitude toward Usage - AT)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phát biểu (AT)</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(1) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(2) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(3) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(4) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(5) %</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trung bình </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                        <tr><td class="px-4 py-3 font-medium">AT2: Là một trải nghiệm thú vị</td><td class="px-2 py-3 text-center">1.0%</td><td class="px-2 py-3 text-center">3.0%</td><td class="px-2 py-3 text-center">6.0%</td><td class="px-2 py-3 text-center">40.0%</td><td class="px-2 py-3 text-center font-bold text-primary">50.0%</td><td class="px-4 py-3 text-center font-bold text-primary">4.35</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">AT1: Cảm thấy hứng thú và thích thú</td><td class="px-2 py-3 text-center">2.0%</td><td class="px-2 py-3 text-center">4.0%</td><td class="px-2 py-3 text-center">10.0%</td><td class="px-2 py-3 text-center">38.0%</td><td class="px-2 py-3 text-center font-bold text-primary">46.0%</td><td class="px-4 py-3 text-center font-bold text-primary">4.20</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">AT3: Tin rằng là một ý tưởng tốt</td><td class="px-2 py-3 text-center">1.0%</td><td class="px-2 py-3 text-center">5.0%</td><td class="px-2 py-3 text-center">15.0%</td><td class="px-2 py-3 text-center font-bold">40.0%</td><td class="px-2 py-3 text-center">39.0%</td><td class="px-4 py-3 text-center font-bold text-primary">4.15</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Table 4: ERP -->
+                            <h4 class="text-lg font-semibold text-accent-red mt-6">4. Nhận thức về Rủi ro Đạo đức Học thuật (Ethics & Risk Perception - ERP)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phát biểu (ERP)</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(1) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(2) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(3) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(4) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(5) %</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trung bình </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                        <tr><td class="px-4 py-3 font-medium">ERP2: Sợ bị phụ thuộc/lười tư duy</td><td class="px-2 py-3 text-center">2.0%</td><td class="px-2 py-3 text-center">5.0%</td><td class="px-2 py-3 text-center">15.0%</td><td class="px-2 py-3 text-center">35.0%</td><td class="px-2 py-3 text-center font-bold text-accent-red">43.0%</td><td class="px-4 py-3 text-center font-bold text-accent-red">4.10</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">ERP1: Lo lắng về gian lận học thuật</td><td class="px-2 py-3 text-center">5.0%</td><td class="px-2 py-3 text-center">10.0%</td><td class="px-2 py-3 text-center">20.0%</td><td class="px-2 py-3 text-center font-bold">35.0%</td><td class="px-2 py-3 text-center">30.0%</td><td class="px-4 py-3 text-center font-bold text-accent-red">3.85</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">ERP4: Giáo viên nên cấm sử dụng</td><td class="px-2 py-3 text-center font-bold text-gray-700">20.0%</td><td class="px-2 py-3 text-center">18.0%</td><td class="px-2 py-3 text-center">17.0%</td><td class="px-2 py-3 text-center">25.0%</td><td class="px-2 py-3 text-center">20.0%</td><td class="px-4 py-3 text-center font-bold text-gray-700">3.20</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium italic">(Ngược) ERP3: Luôn chính xác</td><td class="px-2 py-3 text-center font-bold text-gray-700">45.0%</td><td class="px-2 py-3 text-center font-bold text-gray-700">30.0%</td><td class="px-2 py-3 text-center">15.0%</td><td class="px-2 py-3 text-center">7.0%</td><td class="px-2 py-3 text-center">3.0%</td><td class="px-4 py-3 text-center font-bold text-gray-700">2.50</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                             <p class="text-xs text-gray-500 mt-2 italic">Lưu ý: Phát biểu ERP3 là phát biểu ngược, điểm trung bình thấp thể hiện nhận thức đúng đắn của học sinh.</p>
+
+                            <!-- Table 5: RC -->
+                            <h4 class="text-lg font-semibold text-secondary mt-6">5. Hành vi đối phó với Rủi ro (Risk Coping - RC)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phát biểu (RC)</th>
+                                            <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(1) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(2) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(3) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(4) %</th><th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">(5) %</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trung bình </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                        <tr><td class="px-4 py-3 font-medium">RC2: Chỉ dùng để sửa chữa (không viết hộ)</td><td class="px-2 py-3 text-center">2.0%</td><td class="px-2 py-3 text-center">8.0%</td><td class="px-2 py-3 text-center">15.0%</td><td class="px-2 py-3 text-center font-bold">40.0%</td><td class="px-2 py-3 text-center font-bold text-secondary">35.0%</td><td class="px-4 py-3 text-center font-bold text-secondary">4.05</td></tr>
+                                        <tr><td class="px-4 py-3 font-medium">RC1: Luôn kiểm tra lại thông tin</td><td class="px-2 py-3 text-center">5.0%</td><td class="px-2 py-3 text-center">10.0%</td><td class="px-2 py-3 text-center">25.0%</td><td class="px-2 py-3 text-center font-bold">35.0%</td><td class="px-2 py-3 text-center">25.0%</td><td class="px-4 py-3 text-center font-bold text-secondary">3.80</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </details>
+                    <details class="border-b"><summary class="details-summary bg-gray-50 hover:bg-gray-100">Ví dụ Bài tập Ứng dụng AI (Prompt Phản biện)</summary><div class="details-content"><p class="font-bold mb-2 text-indigo-700">Mục tiêu: Phát triển tư duy phản biện.</p><div class="bg-white p-4 rounded-lg border border-indigo-200"><h4 class="font-semibold text-lg mb-2">Bài tập "Thách thức AI" (Khối 11/12)</h4><ol class="list-decimal list-inside text-gray-700 space-y-2"><li>Yêu cầu ChatGPT viết một đoạn văn (150 từ) về chủ đề "Tác động của mạng xã hội".</li><li><span class="font-medium text-secondary">Bước Phản biện:</span> Tìm ra 5 câu/cụm từ của AI có thể được diễn đạt tốt hơn.</li><li>Viết lại đoạn văn và giải thích lý do thay đổi.</li></ol></div></div></details>
+                    <details class="border-b"><summary class="details-summary bg-gray-50 hover:bg-gray-100">Hướng dẫn Sử dụng AI Có Trách nhiệm</summary><div class="details-content"><p class="font-bold mb-3 text-indigo-700">Các bước hành động thực tiễn cho học sinh:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="p-4 bg-white rounded-lg border border-teal-300"><h4 class="font-semibold text-teal-700 mb-2">✅ Làm chủ Kỹ thuật Prompt: Tối ưu cho Nghe & Nói</h4><ul class="list-disc list-outside ml-5 text-gray-700 text-sm"><li>Đưa ra vai trò cụ thể ("Act as an English teacher").</li><li>**Luyện Nói (Speaking):** Yêu cầu kịch bản đối thoại, sau đó yêu cầu AI sửa lỗi và nâng cấp câu trả lời của bạn.</li><li>**Luyện Nghe (Listening):** Yêu cầu AI cung cấp đoạn hội thoại ngắn, sau đó bạn chép lại và AI kiểm tra (Transcription).</li></ul></div><div class="p-4 bg-white rounded-lg border border-red-300"><h4 class="font-semibold text-red-700 mb-2">❌ Kiểm soát Mức độ Phụ thuộc</h4><ul class="list-disc list-outside ml-5 text-gray-700 text-sm"><li>Không dùng để viết toàn bộ bài luận.</li><li>Luôn kiểm tra chéo (Cross-check) thông tin.</li><li>Sau khi AI sửa lỗi, tự giải thích tại sao đó là lỗi.</li></ul></div></div></div></details>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Demo Tab (Tab 3) - NEW STRUCTURE -->
+        <div id="content-game" class="tab-content hidden space-y-8">
+            <div class="bg-white p-6 sm:p-8 rounded-xl card border-t-4 border-teal-500">
+                <h2 class="text-3xl font-bold mb-4 text-teal-700">Game Demo: Luyện Tập 4 Kỹ Năng Ngoại Ngữ với AI</h2>
+                <p class="text-gray-600 leading-relaxed mb-6">Tùy chỉnh bài tập của bạn. Hệ thống AI sẽ tạo ra kịch bản, văn bản hoặc câu hỏi luyện tập dựa trên lựa chọn của bạn để tối ưu hóa việc học.</p>
+                
+                <!-- Cấu hình Bài tập -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div>
+                        <label for="game-language" class="block text-sm font-medium text-gray-700 mb-1">Ngôn ngữ</label>
+                        <select id="game-language" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="english">Tiếng Anh (English)</option>
+                            <option value="japanese">Tiếng Nhật (Japanese)</option>
+                            <option value="korean">Tiếng Hàn (Korean)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="game-topic" class="block text-sm font-medium text-gray-700 mb-1">Chủ đề</label>
+                        <select id="game-topic" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="school">Đời sống Học đường</option>
+                            <option value="travel">Du lịch & Văn hóa</option>
+                            <option value="science">Khoa học & Công nghệ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="game-level" class="block text-sm font-medium text-gray-700 mb-1">Cấp độ Khó</label>
+                        <select id="game-level" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="easy">Cơ bản (A1/A2)</option>
+                            <option value="medium">Trung cấp (B1/B2)</option>
+                            <option value="hard">Nâng cao (C1/C2)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Khu vực 4 Kỹ năng -->
+                <div class="space-y-6">
+                    <!-- Kỹ năng NGHE (Listening) -->
+                    <div id="skill-listening" class="p-5 bg-primary-light rounded-xl border-l-4 border-indigo-500">
+                        <h3 class="text-xl font-bold mb-3 text-indigo-700 flex items-center">
+                            <span class="mr-2">🎧</span> Luyện Nghe (Listening)
+                        </h3>
+                        <p id="listening-scenario" class="text-gray-600 mb-3 italic">Chọn cấu hình và nhấn "Tạo Bài Tập" để tạo một đoạn hội thoại ngắn và các câu hỏi.</p>
+                        <div id="listening-content" class="bg-white p-3 rounded-lg shadow-inner border border-gray-200 min-h-[50px] flex items-center justify-center text-gray-500 text-sm">
+                            <!-- Simulated Audio Player -->
+                            <button id="btn-play-audio" class="bg-indigo-400 hover:bg-indigo-500 text-white font-semibold py-1 px-4 rounded-lg transition duration-200 hidden">
+                                ▶️ Play Audio (Giả lập)
+                            </button>
+                        </div>
+                        <div id="listening-questions" class="mt-3 hidden">
+                             <h4 class="font-semibold text-gray-700 mb-2">Câu hỏi trắc nghiệm:</h4>
+                             <ul class="list-disc list-inside ml-4 text-sm space-y-1">
+                                <li>Question 1?</li>
+                                <li>Question 2?</li>
+                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Kỹ năng NÓI (Speaking) - Focus area -->
+                    <div id="skill-speaking" class="p-5 bg-primary-light rounded-xl border-l-4 border-teal-500">
+                        <h3 class="text-xl font-bold mb-3 text-teal-700 flex items-center">
+                            <span class="mr-2">🗣️</span> Luyện Nói (Speaking)
+                        </h3>
+                        <p id="speaking-scenario" class="text-gray-600 mb-3 italic">Chọn cấu hình và nhấn "Tạo Bài Tập" để nhận một vai trò và chủ đề đối thoại.</p>
+                        <div id="speaking-content" class="bg-white p-4 rounded-lg shadow-inner border border-gray-200 min-h-[100px] overflow-y-auto mb-4">
+                            <p class="text-gray-500">AI: [Sẽ tạo kịch bản nhập vai tại đây...]</p>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                            <button id="btn-record" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md flex items-center justify-center">
+                                <span class="mr-2">🎙️</span> Bắt Đầu Đối Thoại
+                            </button>
+                            <button id="btn-stop-record" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md flex items-center justify-center hidden">
+                                <span class="mr-2">🛑</span> Dừng & Phân Tích
+                            </button>
+                        </div>
+                        <div id="speaking-result" class="mt-4 p-3 bg-gray-100 rounded-lg hidden">
+                            <h4 class="font-semibold text-teal-700 mb-1">Phân tích Phản hồi (AI Feedback)</h4>
+                            <p id="speaking-feedback" class="text-sm text-gray-700"></p>
+                        </div>
+                    </div>
+
+                    <!-- Kỹ năng ĐỌC (Reading) -->
+                    <div id="skill-reading" class="p-5 bg-primary-light rounded-xl border-l-4 border-indigo-500">
+                        <h3 class="text-xl font-bold mb-3 text-indigo-700 flex items-center">
+                            <span class="mr-2">📖</span> Luyện Đọc & Hiểu (Reading)
+                        </h3>
+                        <p id="reading-scenario" class="text-gray-600 mb-3 italic">Chọn cấu hình và nhấn "Tạo Bài Tập" để nhận một đoạn văn bản và các câu hỏi đọc hiểu.</p>
+                        <div id="reading-content" class="bg-white p-3 rounded-lg shadow-inner border border-gray-200 min-h-[100px] overflow-y-auto text-sm text-gray-700">
+                            [Nội dung văn bản sẽ được tạo...]
+                        </div>
+                        <div id="reading-questions" class="mt-3 hidden">
+                             <h4 class="font-semibold text-gray-700 mb-2">Câu hỏi đọc hiểu:</h4>
+                             <ul class="list-disc list-inside ml-4 text-sm space-y-1">
+                                <li>Question 1?</li>
+                                <li>Question 2?</li>
+                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Kỹ năng VIẾT (Writing) -->
+                    <div id="skill-writing" class="p-5 bg-primary-light rounded-xl border-l-4 border-teal-500">
+                        <h3 class="text-xl font-bold mb-3 text-teal-700 flex items-center">
+                            <span class="mr-2">✍️</span> Luyện Viết (Writing)
+                        </h3>
+                        <p id="writing-scenario" class="text-gray-600 mb-3 italic">Chọn cấu hình và nhấn "Tạo Bài Tập" để nhận một đề tài/tình huống viết.</p>
+                        <div id="writing-prompt" class="bg-white p-3 rounded-lg shadow-inner border border-gray-200 min-h-[50px] mb-3 text-gray-700 font-medium">
+                            [Đề tài viết sẽ được tạo...]
+                        </div>
+                        <textarea id="writing-input" rows="4" class="w-full p-3 border rounded-lg focus:ring-teal-500 focus:border-teal-500 text-sm" placeholder="Viết câu trả lời của bạn tại đây..."></textarea>
+                        <button id="btn-submit-writing" class="mt-3 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                            Nộp bài & Nhận Phản hồi AI
+                        </button>
+                        <div id="writing-result" class="mt-4 p-3 bg-gray-100 rounded-lg hidden">
+                            <h4 class="font-semibold text-teal-700 mb-1">Phân tích Phản hồi (AI Feedback)</h4>
+                            <p id="writing-feedback" class="text-sm text-gray-700"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút Tạo Bài Tập Chung -->
+                <div class="text-center mt-8">
+                    <button id="btn-generate-all" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-lg py-3 px-10 rounded-xl transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
+                        Tạo Bài Tập Mới Cho 4 Kỹ Năng
+                    </button>
+                </div>
+                
+                <div id="game-status-general" class="text-center text-sm mt-4 text-gray-600 font-medium">Chọn cấu hình và nhấn nút để bắt đầu.</div>
+            </div>
+        </div>
+
+    </main>
+
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-blue': '#1e40af',
-                        'secondary-green': '#10b981',
-                        'accent-red': '#ef4444',
-                    }
-                }
-            }
+        const data = {
+            // Updated Averages from the provided data (N=100)
+            avg: {
+                pu: 3.89,
+                peou: 4.22,
+                at: 4.17,
+                erp: 3.41
+            },
+            // Data for PU vs PEOU Chart (Averages for each item)
+            puData: [4.25, 4.10, 3.95, 3.65, 3.50], // PU4, PU2, PU3, PU5, PU1
+            peouData: [4.30, 4.20, 4.15], // PEOU2, PEOU1, PEOU3
+            // Data for AT vs ERP Chart (Overall Averages)
+            atErpData: [4.17, 3.41]
+        };
+
+        const chartColors = {
+            primary: '#4f46e5', // Indigo
+            secondary: '#14b8a6', // Teal
+            accentRed: '#ef4444', // Red
+            gray: '#d1d5db'
+        };
+
+        function initStats() {
+            const duration = 1500;
+            animateValue("stat-pu", 0, data.avg.pu, duration, 2);
+            animateValue("stat-peou", 0, data.avg.peou, duration, 2);
+            animateValue("stat-at", 0, data.avg.at, duration, 2);
+            animateValue("stat-erp", 0, data.avg.erp, duration, 2);
         }
-    </script>
 
-    <div class="min-h-screen bg-gray-50">
-        <!-- HEADER -->
-        <header class="bg-primary-blue text-white shadow-lg">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                <h1 class="text-3xl font-bold tracking-tight">
-                    TỔNG QUAN NGHIÊN CỨU KHOA HỌC
-                </h1>
-                <p class="mt-1 text-lg text-blue-200">
-                    Thái độ và Nhận thức của Học sinh Phổ thông về ChatGPT trong Học Ngoại ngữ
-                </p>
-            </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
-            <!-- NEW SECTION: QUICK ACCESS BUTTONS -->
-            <div class="bg-white rounded-xl card p-6 mb-8">
-                <h2 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-secondary-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Công cụ Hỗ trợ Học tập
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Button 1: ChatGPT -->
-                    <a href="https://chatgpt.com/" target="_blank" class="flex items-center justify-center p-4 bg-primary-blue text-white font-bold rounded-lg transition duration-300 hover:bg-blue-700 shadow-md">
-                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z"></path></svg>
-                        Khởi động Chat AI
-                    </a>
-                    <!-- Button 2: English Grammar -->
-                    <a href="https://www.englishgrammar.org/" target="_blank" class="flex items-center justify-center p-4 bg-secondary-green text-white font-bold rounded-lg transition duration-300 hover:bg-green-700 shadow-md">
-                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Kiểm tra Ngữ pháp
-                    </a>
-                </div>
-            </div>
-
-            <!-- PHẦN 1: TÓM TẮT CHUNG -->
-            <div class="bg-white rounded-xl card p-6 mb-8">
-                <h2 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Tóm tắt Kết quả Chính (N=300)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                    <div class="p-4 bg-blue-50 rounded-lg">
-                        <p class="text-4xl font-extrabold text-primary-blue">80%</p>
-                        <p class="mt-2 text-gray-600">Học sinh **Đã sử dụng** ChatGPT</p>
-                    </div>
-                    <div class="p-4 bg-green-50 rounded-lg">
-                        <p class="text-4xl font-extrabold text-secondary-green">4.22/5.0</p>
-                        <p class="mt-2 text-gray-600">Đánh giá trung bình về **Tính Dễ Sử Dụng (PEOU)**</p>
-                    </div>
-                    <div class="p-4 bg-red-50 rounded-lg">
-                        <p class="text-4xl font-extrabold text-accent-red">4.10/5.0</p>
-                        <p class="mt-2 text-gray-600">Lo lắng về rủi ro **Phụ thuộc** vào công cụ (ERP)</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PHẦN 2: BIỂU ĐỒ SO SÁNH NHẬN THỨC VÀ THÁI ĐỘ (TAM) -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <!-- Biểu đồ 1: Thái độ và Nhận thức (TAM) -->
-                <div class="bg-white rounded-xl card p-6">
-                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Mức Độ Đánh Giá Các Yếu Tố Chính (Likert $\bar{X}$)</h3>
-                    <div class="chart-container">
-                        <canvas id="tamChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Biểu đồ 2: Mục đích Sử dụng Chính -->
-                <div class="bg-white rounded-xl card p-6">
-                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Mục Đích Sử Dụng Phổ Biến Nhất</h3>
-                    <div class="chart-container">
-                        <canvas id="purposeChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PHẦN 3: PHÂN TÍCH SO SÁNH GIỮA KHỐI LỚP (T-TEST) -->
-            <div class="bg-white rounded-xl card p-6 mb-8">
-                <h2 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    So Sánh Nhận Thức Giữa Khối 8 và Khối 12
-                </h2>
-                <p class="text-gray-600 mb-4">Phân tích T-test cho thấy sự khác biệt có ý nghĩa thống kê ở hầu hết các biến số:</p>
-                <div class="chart-container">
-                    <canvas id="ttestChart"></canvas>
-                </div>
-            </div>
-
-            <!-- PHẦN 4: KẾT LUẬN VÀ KHUYẾN NGHỊ -->
-            <div class="bg-white rounded-xl card p-6 mb-8">
-                <h2 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-secondary-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.504A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.559M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Khuyến Nghị Trọng Tâm
-                </h2>
-                <ul class="space-y-4 text-gray-700">
-                    <li class="p-3 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
-                        <span class="font-bold text-indigo-700">Đối với Giáo viên:</span> Thiết kế lại bài tập, yêu cầu học sinh **phản biện** và **kiểm tra lỗi** của AI, thay vì làm bài tập hộ.
-                    </li>
-                    <li class="p-3 bg-green-50 rounded-lg border-l-4 border-secondary-green">
-                        <span class="font-bold text-green-700">Đối với Nhà trường:</span> Xây dựng **Bộ quy tắc Đạo đức AI** rõ ràng để quản lý rủi ro gian lận học thuật, đặc biệt với khối cuối cấp.
-                    </li>
-                    <li class="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
-                        <span class="font-bold text-yellow-700">Đối với Học sinh:</span> Khuyến khích sử dụng AI để **nâng cao hiệu suất** (như Khối 12) nhưng **có trách nhiệm** và **tự kiểm soát** mức độ phụ thuộc.
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- PHẦN 5: TÀI LIỆU BỔ SUNG -->
-            <div class="bg-white rounded-xl card mb-8">
-                <h2 class="text-2xl font-semibold text-gray-800 p-6 border-b flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.206 5 7.5 5A2.5 2.5 0 005 7.5c0 3.013 3.197 6.476 6.5 9.253M12 6.253C13.168 5.477 14.794 5 16.5 5A2.5 2.5 0 0119 7.5c0 3.013-3.197 6.476-6.5 9.253"></path></svg>
-                    Tài liệu & Hướng dẫn Chi tiết
-                </h2>
-
-                <!-- 5.1 DỮ LIỆU KHẢO SÁT CHI TIẾT -->
-                <details class="border-b">
-                    <summary class="details-summary bg-gray-50 hover:bg-gray-100">Chi tiết Dữ liệu Khảo sát (Mẫu item PU4)</summary>
-                    <div class="details-content">
-                        <p class="text-sm mb-3 text-gray-600">Bảng chi tiết tỷ lệ phản hồi Likert cho phát biểu "ChatGPT giúp cải thiện kỹ năng Viết" (PU4).</p>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mức độ</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tần số (N)</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tỷ lệ (%)</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200 text-sm">
-                                    <tr><td class="px-6 py-4">1: Hoàn toàn Không đồng ý</td><td class="px-6 py-4 text-center">5</td><td class="px-6 py-4 text-center">1.7%</td></tr>
-                                    <tr><td class="px-6 py-4">2: Không đồng ý</td><td class="px-6 py-4 text-center">10</td><td class="px-6 py-4 text-center">3.3%</td></tr>
-                                    <tr><td class="px-6 py-4">3: Bình thường/Không ý kiến</td><td class="px-6 py-4 text-center">30</td><td class="px-6 py-4 text-center">10.0%</td></tr>
-                                    <tr><td class="px-6 py-4 font-semibold text-secondary-green">4: Đồng ý</td><td class="px-6 py-4 text-center">105</td><td class="px-6 py-4 text-center">35.0%</td></tr>
-                                    <tr><td class="px-6 py-4 font-semibold text-primary-blue">5: Hoàn toàn Đồng ý</td><td class="px-6 py-4 text-center">150</td><td class="px-6 py-4 text-center">50.0%</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </details>
-
-                <!-- 5.2 VÍ DỤ BÀI TẬP ỨNG DỤNG AI -->
-                <details class="border-b">
-                    <summary class="details-summary bg-gray-50 hover:bg-gray-100">Ví dụ Bài tập Ứng dụng AI (Prompt Phản biện)</summary>
-                    <div class="details-content">
-                        <p class="font-bold mb-2 text-indigo-700">Mục tiêu: Phát triển tư duy phản biện và khả năng chỉnh sửa.</p>
-                        <div class="bg-white p-4 rounded-lg border border-indigo-200">
-                            <h4 class="font-semibold text-lg mb-2">Bài tập "Thách thức AI" (Khối 11/12)</h4>
-                            <ol class="list-decimal list-inside text-gray-700 space-y-2">
-                                <li>Yêu cầu ChatGPT viết một đoạn văn (khoảng 150 từ) về chủ đề "Tác động của mạng xã hội đến tâm lý học sinh".</li>
-                                <li><span class="font-medium text-secondary-green">Bước Phản biện:</span> Tìm ra 5 câu hoặc cụm từ trong đoạn văn của AI có thể được diễn đạt tốt hơn (ý nghĩa sâu hơn, cấu trúc câu phức tạp hơn hoặc từ vựng học thuật hơn).</li>
-                                <li>Viết lại đoạn văn dựa trên các chỉnh sửa của bạn và giải thích lý do (tối thiểu 50 từ) cho sự thay đổi đó.</li>
-                            </ol>
-                            <p class="mt-3 italic text-sm text-gray-500">Đây là cách chuyển từ sử dụng AI để sao chép sang sử dụng AI để **đối chiếu và nâng cấp**. </p>
-                        </div>
-                    </div>
-                </details>
-
-                <!-- 5.3 TÀI LIỆU HỌC THUẬT QUAN TRỌNG -->
-                <details class="border-b">
-                    <summary class="details-summary bg-gray-50 hover:bg-gray-100">Tài liệu Học thuật Chính</summary>
-                    <div class="details-content">
-                        <p class="font-bold mb-2 text-indigo-700">Các nghiên cứu nền tảng và mô hình lý thuyết được sử dụng:</p>
-                        <ul class="list-disc list-outside ml-5 text-gray-700 space-y-2 text-sm">
-                            <li>Davis, F. D. (1989). **Perceived usefulness, perceived ease of use, and user acceptance of information technology.** *MIS Quarterly*, 13(3), 319-340. (Cơ sở Mô hình TAM).</li>
-                            <li>Bozkurt, A., et al. (2023). **ChatGPT and generative AI in education: A literature review.** *Journal of Educational Technology & Society*, 26(2). (Phân tích tổng quan về AI trong giáo dục).</li>
-                            <li>Ting, Y. L., et al. (2024). **AI-related anxiety and the willingness to use AI tools in higher education.** *International Journal of Educational Technology in Higher Education*. (Nghiên cứu về mối lo ngại và sự chấp nhận AI).</li>
-                        </ul>
-                    </div>
-                </details>
-
-                <!-- 5.4 HƯỚNG DẪN SỬ DỤNG AI CÓ TRÁCH NHIỆM -->
-                <details>
-                    <summary class="details-summary bg-gray-50 hover:bg-gray-100">Hướng dẫn Sử dụng AI Có Trách nhiệm và Hiệu suất</summary>
-                    <div class="details-content">
-                        <p class="font-bold mb-3 text-indigo-700">Các bước hành động thực tiễn cho học sinh:</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-4 bg-white rounded-lg border border-green-300">
-                                <h4 class="font-semibold text-green-700 mb-2">✅ Làm chủ Kỹ thuật Prompt</h4>
-                                <ul class="list-disc list-outside ml-5 text-gray-700 text-sm">
-                                    <li>Đưa ra vai trò cụ thể ("Act as an English teacher").</li>
-                                    <li>Yêu cầu độ khó và định dạng đầu ra rõ ràng.</li>
-                                    <li>Yêu cầu AI giải thích lý do cho câu trả lời.</li>
-                                </ul>
-                            </div>
-                            <div class="p-4 bg-white rounded-lg border border-red-300">
-                                <h4 class="font-semibold text-red-700 mb-2">❌ Kiểm soát Mức độ Phụ thuộc</h4>
-                                <ul class="list-disc list-outside ml-5 text-gray-700 text-sm">
-                                    <li>Không dùng để viết toàn bộ bài luận.</li>
-                                    <li>Luôn kiểm tra chéo (Cross-check) thông tin thực tế.</li>
-                                    <li>Sau khi AI sửa lỗi, tự giải thích tại sao đó là lỗi.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </details>
-            </div>
-
-        </main>
-
-        <!-- FOOTER -->
-        <footer class="bg-gray-800 text-white mt-8">
-            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-sm">
-                Báo cáo Nghiên cứu Khoa học | Dữ liệu giả định dựa trên Mô hình TAM | &copy; 2025
-            </div>
-        </footer>
-    </div>
-
-    <script>
-        // Dữ liệu cho biểu đồ TAM
-        const tamData = {
-            labels: ['Tính Dễ Sử Dụng (PEOU)', 'Thái Độ Sử Dụng (AT)', 'Tính Hữu Ích (PU)'],
-            datasets: [{
-                label: 'Điểm Trung Bình (Thang 5)',
-                data: [4.22, 4.17, 3.89], // Dữ liệu từ kết quả giả định
-                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
-                borderColor: ['#059669', '#2563eb', '#d97706'],
-                borderWidth: 1
-            }]
-        };
-
-        // Dữ liệu cho biểu đồ Mục đích Sử dụng
-        const purposeData = {
-            labels: ['Sửa Lỗi Ngữ Pháp', 'Hỏi Kiến Thức/Từ Vựng', 'Viết Bài/Đoạn Văn'],
-            datasets: [{
-                label: 'Tỷ lệ HS sử dụng (%)',
-                data: [75.0, 60.0, 45.0],
-                backgroundColor: ['#ef4444', '#3b82f6', '#10b981'],
-            }]
-        };
-
-        // Dữ liệu cho biểu đồ T-test (Khối 8 vs Khối 12)
-        const ttestData = {
-            labels: ['Tính Hữu Ích (PU)', 'Thái Độ (AT)', 'Nhận thức Rủi ro (ERP)'],
-            datasets: [
-                {
-                    label: 'Khối 8',
-                    data: [3.50, 3.90, 3.20],
-                    backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Khối 12',
-                    data: [4.10, 4.25, 3.80],
-                    backgroundColor: 'rgba(239, 68, 68, 0.6)', // Red
-                    borderColor: 'rgba(239, 68, 68, 1)',
-                    borderWidth: 1
+        function animateValue(id, start, end, duration, decimals) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            const range = end - start;
+            let current = start;
+            const increment = range / (duration / 10);
+            const step = Math.pow(10, decimals);
+            const timer = setInterval(() => {
+                current += increment;
+                if ((range > 0 && current >= end) || (range < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
                 }
-            ]
-        };
+                obj.textContent = current.toFixed(decimals);
+            }, 10);
+        }
 
-        // Hàm khởi tạo biểu đồ
-        function createChart(ctxId, type, data, options = {}) {
-            const ctx = document.getElementById(ctxId).getContext('2d');
-            new Chart(ctx, {
-                type: type,
-                data: data,
+        function initCharts() {
+            const ctxPuPeou = document.getElementById('chart-pu-peou').getContext('2d');
+            new Chart(ctxPuPeou, {
+                type: 'bar',
+                data: {
+                    labels: ['PU4 (Viết)', 'PU2 (Từ Vựng)', 'PU3 (Tiết Kiệm)', 'PU5 (Hội Thoại)', 'PU1 (Điểm Số)', 'PEOU2 (Giao Diện)', 'PEOU1 (Dễ Dàng)', 'PEOU3 (Tìm Kiếm)'],
+                    datasets: [{
+                        label: 'Mức Độ Đồng Ý (1-5)',
+                        data: [...data.puData, ...data.peouData],
+                        backgroundColor: [
+                            chartColors.primary, chartColors.primary, chartColors.primary, chartColors.primary, chartColors.primary,
+                            chartColors.secondary, chartColors.secondary, chartColors.secondary
+                        ],
+                        borderRadius: 4
+                    }]
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 5, // Chỉ áp dụng cho biểu đồ Likert
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return type === 'bar' && ctxId !== 'purposeChart' ? value.toFixed(2) : value + (ctxId === 'purposeChart' ? '%' : '');
-                                }
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'So Sánh Từng Item PU/PEOU (Điểm TB)', font: { size: 14, weight: 'bold' } },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Điểm TB: ${context.formattedValue}`
                             }
                         }
                     },
+                    scales: {
+                        x: { beginAtZero: true, max: 5.0, title: { display: true, text: 'Điểm Trung Bình (1-5)' } }
+                    }
+                }
+            });
+
+            const ctxAtErp = document.getElementById('chart-at-erp').getContext('2d');
+            new Chart(ctxAtErp, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Thái Độ Tích Cực ($\bar{X}_{AT}$)', 'Nhận thức Rủi ro ($\bar{X}_{ERP}$)'],
+                    datasets: [{
+                        data: data.atErpData,
+                        backgroundColor: [chartColors.primary, chartColors.accentRed],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: type !== 'bar' },
-                        title: { display: false }
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Thái Độ vs Rủi Ro (Điểm TB Tổng Thể)', font: { size: 14, weight: 'bold' } },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.formattedValue}`
+                            }
+                        }
                     },
-                    ...options
+                    scales: {
+                        r: { suggestedMin: 0, suggestedMax: 5, pointLabels: { display: true, centerPointLabels: true, font: { size: 14 } } }
+                    }
                 }
             });
         }
 
-        // Khởi tạo tất cả biểu đồ
-        document.addEventListener('DOMContentLoaded', () => {
-            // Biểu đồ TAM (Bar Chart)
-            createChart('tamChart', 'bar', tamData, {
-                scales: { y: { max: 5.0, title: { display: true, text: 'Điểm Trung Bình (Thang 5)' } } }
+        function changeTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
             });
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
 
-            // Biểu đồ Mục đích (Doughnut Chart)
-            createChart('purposeChart', 'doughnut', purposeData, {
-                scales: { y: { display: false } },
-                plugins: { legend: { position: 'right' } }
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'text-indigo-700');
+                button.classList.add('text-gray-600');
             });
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'text-indigo-700');
+                activeBtn.classList.remove('text-gray-600');
+            }
+        }
 
-            // Biểu đồ T-test (Bar Chart)
-            createChart('ttestChart', 'bar', ttestData, {
-                 scales: { y: { max: 5.0, title: { display: true, text: 'Điểm Trung Bình (Thang 5)' } } }
-            });
+        // --- GAME LOGIC START ---
+
+        const btnGenerateAll = document.getElementById('btn-generate-all');
+        const gameStatusGeneral = document.getElementById('game-status-general');
+
+        // Speaking elements
+        const btnRecord = document.getElementById('btn-record');
+        const btnStopRecord = document.getElementById('btn-stop-record');
+        const speakingContent = document.getElementById('speaking-content');
+        const speakingResult = document.getElementById('speaking-result');
+        const speakingFeedback = document.getElementById('speaking-feedback');
+        let isRecording = false;
+
+        // Writing elements
+        const writingInput = document.getElementById('writing-input');
+        const btnSubmitWriting = document.getElementById('btn-submit-writing');
+        const writingResult = document.getElementById('writing-result');
+        const writingFeedback = document.getElementById('writing-feedback');
+
+        // Functions to simulate AI content generation
+        function generateAIContent(skill, lang, topic, level) {
+            let content = {};
+            
+            // Common context for all skills
+            const context = `Ngôn ngữ: ${lang === 'english' ? 'Tiếng Anh' : lang === 'japanese' ? 'Tiếng Nhật' : 'Tiếng Hàn'}. Chủ đề: ${topic === 'school' ? 'Học đường' : topic === 'travel' ? 'Du lịch' : 'Khoa học'}. Cấp độ: ${level === 'easy' ? 'Cơ bản' : level === 'medium' ? 'Trung cấp' : 'Nâng cao'}.`;
+
+            if (skill === 'listening') {
+                const audioTitle = level === 'easy' ? 'Hội thoại ngắn về thời tiết' : level === 'medium' ? 'Phỏng vấn nhanh về thói quen học tập' : 'Bài diễn thuyết về trí tuệ nhân tạo';
+                const questions = level === 'easy' ? 2 : 3;
+                content.audioTitle = audioTitle;
+                content.questions = Array.from({ length: questions }, (_, i) => `Câu hỏi ${i + 1} về nội dung vừa nghe? (Giả lập)`);
+                content.scenario = `Đoạn Audio (Giả lập) đã được tạo: "${audioTitle}". Vui lòng nhấn nút Play để nghe. (${context})`;
+            } else if (skill === 'speaking') {
+                const role = level === 'easy' ? 'Bạn là khách du lịch hỏi đường' : level === 'medium' ? 'Bạn là sinh viên đang tranh luận về việc sử dụng AI' : 'Bạn là diễn giả trình bày ý tưởng khởi nghiệp';
+                const aiPrompt = level === 'easy' ? 'AI (người bản xứ) sẽ hỏi: Bạn có thể giúp tôi tìm đường đến bưu điện gần nhất không?' : level === 'medium' ? 'AI (giáo sư) sẽ hỏi: Bạn nghĩ AI nên được tích hợp như thế nào trong lớp học?' : 'AI (nhà đầu tư) sẽ hỏi: Ý tưởng của bạn giải quyết vấn đề gì?';
+                content.role = role;
+                content.aiPrompt = `AI (${lang}): ${aiPrompt}`;
+                content.scenario = `Vai trò của bạn: <span class="font-semibold text-teal-600">${role}</span>. Bắt đầu đối thoại! (${context})`;
+            } else if (skill === 'reading') {
+                const title = level === 'easy' ? 'Câu chuyện ngắn về thú cưng' : level === 'medium' ? 'Bài báo về các điểm đến du lịch nổi tiếng' : 'Tóm tắt nghiên cứu về biến đổi khí hậu';
+                const article = level === 'easy' ? 'Hôm nay, một chú mèo tên là Leo đã tìm thấy một quả bóng màu đỏ trong vườn. Leo rất thích chơi với quả bóng. Đó là một ngày nắng.' : level === 'medium' ? 'Du lịch đã trở lại mạnh mẽ sau đại dịch. Nhiều người đang tìm kiếm những trải nghiệm du lịch bền vững và có trách nhiệm.' : 'Trí tuệ nhân tạo đang thay đổi cách chúng ta tương tác với thế giới. Tuy nhiên, các vấn đề về đạo đức và quyền riêng tư vẫn là mối quan tâm hàng đầu.';
+                const questions = level === 'easy' ? 2 : 4;
+                content.article = article;
+                content.questions = Array.from({ length: questions }, (_, i) => `Câu hỏi đọc hiểu ${i + 1}? (Giả lập)`);
+                content.scenario = `Văn bản (Giả lập) đã được tạo: "${title}". Vui lòng đọc kỹ và trả lời các câu hỏi. (${context})`;
+            } else if (skill === 'writing') {
+                const prompt = level === 'easy' ? 'Viết 5 câu về kỳ nghỉ hè của bạn.' : level === 'medium' ? 'Viết một đoạn văn (100 từ) trình bày ý kiến về việc học trực tuyến.' : 'Viết một bài luận ngắn (200 từ) về ưu và nhược điểm của công nghệ AI trong giáo dục.';
+                content.prompt = prompt;
+                content.scenario = `Đề tài (Giả lập) đã được tạo: "${prompt}". Vui lòng viết câu trả lời của bạn vào ô bên dưới. (${context})`;
+            }
+            return content;
+        }
+
+        // Main generation function
+        function generateAllExercises() {
+            const lang = document.getElementById('game-language').value;
+            const topic = document.getElementById('game-topic').value;
+            const level = document.getElementById('game-level').value;
+
+            gameStatusGeneral.textContent = `Đang tạo bài tập (${lang}, ${topic}, ${level})... Vui lòng chờ.`;
+            
+            // 1. Listening
+            const listeningData = generateAIContent('listening', lang, topic, level);
+            document.getElementById('listening-scenario').innerHTML = listeningData.scenario;
+            document.getElementById('btn-play-audio').classList.remove('hidden');
+            const lq = document.getElementById('listening-questions');
+            lq.classList.remove('hidden');
+            lq.querySelector('ul').innerHTML = listeningData.questions.map(q => `<li>${q}</li>`).join('');
+
+            // 2. Speaking
+            const speakingData = generateAIContent('speaking', lang, topic, level);
+            document.getElementById('speaking-scenario').innerHTML = speakingData.scenario;
+            speakingContent.innerHTML = `<p class="text-gray-500 font-medium">${speakingData.aiPrompt}</p>`;
+            btnRecord.classList.remove('hidden');
+            btnStopRecord.classList.add('hidden');
+            speakingResult.classList.add('hidden');
+
+            // 3. Reading
+            const readingData = generateAIContent('reading', lang, topic, level);
+            document.getElementById('reading-scenario').innerHTML = readingData.scenario;
+            document.getElementById('reading-content').textContent = readingData.article;
+            const rq = document.getElementById('reading-questions');
+            rq.classList.remove('hidden');
+            rq.querySelector('ul').innerHTML = readingData.questions.map(q => `<li>${q}</li>`).join('');
+
+            // 4. Writing
+            const writingData = generateAIContent('writing', lang, topic, level);
+            document.getElementById('writing-scenario').innerHTML = writingData.scenario;
+            document.getElementById('writing-prompt').textContent = writingData.prompt;
+            writingInput.value = '';
+            writingResult.classList.add('hidden');
+            
+            gameStatusGeneral.textContent = `✅ Đã tạo bài tập thành công! Bắt đầu luyện tập.`;
+        }
+
+        btnGenerateAll.addEventListener('click', generateAllExercises);
+        
+        // --- GAME SIMULATION LOGIC ---
+
+        // Speaking Simulation
+        btnRecord.addEventListener('click', () => {
+            if (isRecording) return;
+            isRecording = true;
+            btnRecord.classList.add('hidden');
+            btnStopRecord.classList.remove('hidden');
+            gameStatusGeneral.textContent = "🔴 Đang ghi âm... (Giả lập: 4 giây)";
+            speakingResult.classList.add('hidden');
+            speakingContent.innerHTML += `<p class="text-teal-600 font-medium mt-2">-- Bắt đầu trả lời (Giả lập)...</p>`;
+            speakingContent.scrollTop = speakingContent.scrollHeight;
+            
+            setTimeout(() => {
+                if (isRecording) {
+                    btnStopRecord.click(); 
+                    
+                    const feedback = [
+                        "Phản hồi xuất sắc! Bạn đã sử dụng thành công thuật ngữ 'AI integration'. Ngữ pháp và lưu loát rất tốt (4.5/5).",
+                        "Phản hồi tốt. Bạn nên cải thiện cách dùng giới từ. Thử nói 'I'm excited about the future of online learning' thay vì 'I excited of the future'. Điểm: 3.8/5.",
+                        "Phản hồi trung bình. Tốc độ nói hơi nhanh và mắc một lỗi thì quá khứ. Cố gắng luyện tập thêm sự tự tin khi tranh luận. Điểm: 3.2/5."
+                    ];
+                    
+                    speakingFeedback.innerHTML = `<span class="font-bold text-teal-600">Phản hồi AI:</span> ${feedback[Math.floor(Math.random() * feedback.length)]} <br><br> Đây là cách AI giúp bạn tăng cường kỹ năng Nói (PU5).`;
+                    speakingResult.classList.remove('hidden');
+                    gameStatusGeneral.textContent = "✅ Phân tích và phản hồi đã hoàn thành!";
+                    speakingContent.innerHTML += `<p class="text-indigo-500 mt-2">-- Kết thúc câu trả lời --</p>`;
+                    speakingContent.scrollTop = speakingContent.scrollHeight;
+                }
+            }, 4000); // Record for 4 seconds
         });
+
+        btnStopRecord.addEventListener('click', () => {
+            isRecording = false;
+            btnRecord.classList.remove('hidden');
+            btnStopRecord.classList.add('hidden');
+            gameStatusGeneral.textContent = "Đã dừng ghi âm. Đang chờ phân tích...";
+        });
+        
+        // Writing Simulation
+        btnSubmitWriting.addEventListener('click', () => {
+            const answer = writingInput.value.trim();
+            if (answer.length < 20) {
+                 gameStatusGeneral.textContent = "⚠️ Vui lòng viết câu trả lời dài hơn (ít nhất 20 ký tự) để AI phân tích.";
+                 return;
+            }
+            gameStatusGeneral.textContent = "⏳ Đang nộp bài và chờ AI phân tích/sửa lỗi...";
+            writingResult.classList.add('hidden');
+            
+            setTimeout(() => {
+                const mistakes = Math.floor(Math.random() * 3) + 1;
+                const feedback = mistakes === 1 ?
+                    "Bài viết tốt. Chỉ mắc một lỗi nhỏ về chính tả: 'recieve' nên sửa thành 'receive'. Cấu trúc câu và ý tưởng rất rõ ràng. Điểm: 4.5/5." : mistakes === 2 ?
+                    "Bài viết khá tốt. AI đã tìm thấy 2 lỗi ngữ pháp: Lỗi thứ nhất về thì hiện tại hoàn thành, lỗi thứ hai về sự hòa hợp chủ ngữ/động từ. Thử viết lại câu đó xem sao. Điểm: 3.8/5." :
+                    "Cần cải thiện. Bài viết có 3 lỗi ngữ pháp và từ vựng chưa đa dạng. Thử sử dụng các từ nối (e.g., 'However', 'In conclusion') để tăng tính mạch lạc. Điểm: 3.2/5.";
+                
+                writingFeedback.innerHTML = `<span class="font-bold text-teal-600">Phản hồi AI:</span> ${feedback} <br><br> AI giúp bạn tập trung vào kỹ năng Viết (PU4) và sửa lỗi một cách có trách nhiệm (RC2).`;
+                writingResult.classList.remove('hidden');
+                gameStatusGeneral.textContent = "✅ Phân tích Viết đã hoàn thành!";
+            }, 2500);
+        });
+
+        // Listening Play Simulation
+        document.getElementById('btn-play-audio').addEventListener('click', () => {
+            gameStatusGeneral.textContent = "▶️ Audio đang phát... (Giả lập)";
+            setTimeout(() => {
+                gameStatusGeneral.textContent = "✅ Audio hoàn tất. Vui lòng trả lời câu hỏi.";
+            }, 3000);
+        });
+        
+        // --- GAME LOGIC END ---
+
+        // Initialize on load
+        window.onload = function() {
+            initStats();
+            initCharts();
+            // Set initial tab based on URL hash or default to overview
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.getElementById(`content-${hash}`)) {
+                changeTab(hash);
+            } else {
+                changeTab('overview');
+            }
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const tabId = e.target.id.replace('tab-', '');
+                    changeTab(tabId);
+                    window.location.hash = tabId;
+                });
+            });
+            
+            // Initialize game content on load (generate default easy English exercises)
+            generateAllExercises();
+        };
     </script>
 </body>
 </html>
