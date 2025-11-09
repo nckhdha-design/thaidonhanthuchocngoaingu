@@ -1,6 +1,3 @@
-<!-- Chosen Palette: Warm Neutrals (Background: neutral-100/white, Primary: indigo-600/700, Secondary: teal-500/600, Alert: red-500/700) -->
-<!-- Application Structure Plan: Dashboard/Tab-based approach. The content is divided into 3 main views: Overview (Key Stats/Charts), Research (Detailed Data/Methodology), and Game (Interactive Demo). This structure is chosen to separate high-level consumption from deep analysis and practical application, allowing users to choose their exploration path efficiently. The Research tab is further structured with expandable detail sections. -->
-<!-- Visualization & Content Choices: 1. Key Stats: Dynamic Counters (HTML/JS) - Goal: Inform, Interaction: On-load animation. 2. Main Correlation Chart: Scatter Plot (Chart.js/Canvas) - Goal: Relationship, Interaction: Click to focus/detail, Justification: Visually shows correlation between usage and perceived usefulness. 3. Likert Scales: Grouped Bar Charts (Chart.js/Canvas) - Goal: Compare, Interaction: Toggle between dimensions (PU/PEOU), Justification: Clearly presents distribution of student opinions. 4. Detailed Data: Interactive/Sortable HTML Tables - Goal: Organize/Inform, Interaction: Expand/Collapse details, Justification: Presents raw frequency data (N=100) clearly without requiring complex charting. CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -9,7 +6,6 @@
     <title>Ứng Dụng Nghiên Cứu Ngoại Ngữ - AI & Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- THÊM: Tải Lucide Icons cho Game -->
     <script type="module">
         // Sử dụng import namespace (*) để tải toàn bộ module Lucide
         import * as lucide from 'https://unpkg.com/lucide@latest';
@@ -45,7 +41,6 @@
 </head>
 <body class="text-gray-800">
 
-    <!-- Header & Navigation -->
     <header class="bg-white shadow-md sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex items-center justify-between">
@@ -59,38 +54,30 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Overview Tab (Tab 1) -->
         <div id="content-overview" class="tab-content space-y-8">
-            <!-- Introduction -->
             <div class="bg-white p-6 sm:p-8 rounded-xl card">
                 <h2 class="text-3xl font-bold mb-4 text-indigo-700">Tổng Quan Nghiên Cứu & Ứng Dụng</h2>
                 <p class="text-gray-600 leading-relaxed">Phần này cung cấp cái nhìn tổng quát về kết quả khảo sát "Thái độ và Nhận thức của học sinh Phổ thông về việc học ngoại ngữ qua ChatGPT" và tóm tắt mô hình ứng dụng game được đề xuất. Dữ liệu khảo sát ($N=100$) được trình bày qua các chỉ số và biểu đồ chính, giúp người dùng nhanh chóng nắm bắt các xu hướng quan trọng.</p>
             </div>
 
-            <!-- Key Metrics Summary -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Metric 1: PU Score -->
                 <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-indigo-500">
                     <div class="text-5xl font-extrabold text-indigo-600" id="stat-pu">0.00</div>
                     <div class="text-lg font-medium text-gray-500 mt-2">Tính Hữu Ích Cảm Nhận </div>
                     <div class="text-sm text-gray-400 mt-1">Đánh giá cao khả năng Viết.</div>
                 </div>
-                <!-- Metric 2: PEOU Score -->
                 <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-teal-500">
                     <div class="text-5xl font-extrabold text-teal-600" id="stat-peou">0.00</div>
                     <div class="text-lg font-medium text-gray-500 mt-2">Tính Dễ Sử Dụng </div>
                     <div class="text-sm text-gray-400 mt-1">Giao diện đơn giản, dễ thao tác.</div>
                 </div>
-                <!-- Metric 3: Attitude Score -->
                 <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-indigo-300">
                     <div class="text-5xl font-extrabold text-indigo-400" id="stat-at">0.00</div>
                     <div class="text-lg font-medium text-gray-500 mt-2">Thái Độ Tích Cực </div>
                     <div class="text-sm text-gray-400 mt-1">Hứng thú và xem là trải nghiệm thú vị.</div>
                 </div>
-                <!-- Metric 4: Risk Perception -->
                 <div class="bg-white p-6 rounded-xl card flex flex-col items-center justify-center border-b-4 border-red-500">
                     <div class="text-5xl font-extrabold text-red-600" id="stat-erp">0.00</div>
                     <div class="text-lg font-medium text-gray-500 mt-2">Nhận thức Rủi ro </div>
@@ -98,9 +85,7 @@
                 </div>
             </div>
 
-            <!-- Main Charts Row -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Chart 1: PU/PEOU Comparison -->
                 <div class="bg-white p-6 rounded-xl card flex flex-col">
                     <h3 class="text-xl font-semibold mb-4 text-gray-800">So sánh Nhận thức (PU vs PEOU)</h3>
                     <p class="text-sm text-gray-500 mb-4">Biểu đồ so sánh điểm trung bình giữa Tính Hữu Ích và Tính Dễ Sử Dụng cảm nhận. PEOU cao hơn cho thấy nền tảng AI dễ dàng tiếp cận người dùng.</p>
@@ -109,7 +94,6 @@
                     </div>
                 </div>
 
-                <!-- Chart 2: Attitude & Risk -->
                 <div class="bg-white p-6 rounded-xl card flex flex-col">
                     <h3 class="text-xl font-semibold mb-4 text-gray-800">Thái độ và Rủi ro (AT vs ERP)</h3>
                     <p class="text-sm text-gray-500 mb-4">Mối quan hệ giữa Thái độ tích cực (AT) và mức độ Nhận thức rủi ro (ERP). Sự chênh lệch giữa hai yếu tố này là nền tảng cho hành vi sử dụng.</p>
@@ -119,7 +103,6 @@
                 </div>
             </div>
 
-            <!-- Game Application Summary -->
             <div class="bg-white p-6 sm:p-8 rounded-xl card border-t-4 border-teal-500">
                 <h2 class="text-3xl font-bold mb-4 text-teal-700">Mô Hình Ứng Dụng Game Hóa</h2>
                 <p class="text-gray-600 leading-relaxed mb-4">Phần này tóm tắt ý tưởng phát triển một ứng dụng học ngoại ngữ tích hợp yếu tố Game hóa, tập trung vào việc **tăng cường kỹ năng Hội thoại (Speaking)** – khía cạnh được đánh giá thấp nhất trong thang đo PU. Ứng dụng sẽ sử dụng AI để tạo kịch bản nhập vai và phản hồi trực tiếp, biến việc học thành một trải nghiệm giải trí, kích thích hành vi đối phó rủi ro (RC) tích cực.</p>
@@ -129,29 +112,23 @@
             </div>
         </div>
 
-        <!-- Research Tab (Tab 2) -->
         <div id="content-research" class="tab-content hidden space-y-8">
-            <!-- Research Container -->
             <div class="space-y-6">
-                <!-- Introduction -->
                 <div class="bg-white p-6 sm:p-8 rounded-xl card">
                     <h2 class="text-3xl font-bold mb-4 text-indigo-700">Nghiên Cứu & Phân Tích Chuyên Sâu</h2>
                     <p class="text-gray-600 leading-relaxed">Phần này cung cấp các bảng dữ liệu khảo sát chi tiết theo từng mục (Item), cùng với các tài liệu và hướng dẫn ứng dụng AI có trách nhiệm, phục vụ cho mục đích phân tích học thuật và đưa ra khuyến nghị.</p>
                 </div>
                 
-                <!-- TÀI LIỆU BỔ SUNG (CHI TIẾT) -->
                 <div class="bg-white rounded-xl card mb-8">
                     <h2 class="text-2xl font-semibold text-gray-800 p-6 border-b flex items-center">
                         <span class="mr-2 text-indigo-500"></span> Tài liệu & Hướng dẫn Chi tiết
                     </h2>
 
-                    <!-- 5.1 DỮ LIỆU KHẢO SÁT CHI TIẾT (UPDATED) -->
                     <details class="border-b" open>
                         <summary class="details-summary bg-gray-50 hover:bg-gray-100">Chi tiết Dữ liệu Khảo sát (Theo từng Item - N=100)</summary>
                         <div class="details-content space-y-6">
                             <p class="text-sm mb-3 text-gray-600">Dữ liệu tổng hợp (N=100) chi tiết tỷ lệ phản hồi (Thang đo Likert 5 mức: 1=Hoàn toàn Không đồng ý đến 5=Hoàn toàn Đồng ý) cho từng phát biểu.</p>
                             
-                            <!-- Table 1: PU -->
                             <h4 class="text-lg font-semibold text-primary">1. Nhận thức về Tính hữu ích (Perceived Usefulness - PU)</h4>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
@@ -176,7 +153,6 @@
                                 </table>
                             </div>
 
-                            <!-- Table 2: PEOU -->
                             <h4 class="text-lg font-semibold text-secondary mt-6">2. Nhận thức về Tính dễ sử dụng (Perceived Ease of Use - PEOU)</h4>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
@@ -195,7 +171,6 @@
                                 </table>
                             </div>
 
-                            <!-- Table 3: AT -->
                             <h4 class="text-lg font-semibold text-primary mt-6">3. Thái độ sử dụng (Attitude toward Usage - AT)</h4>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
@@ -214,7 +189,6 @@
                                 </table>
                             </div>
 
-                            <!-- Table 4: ERP -->
                             <h4 class="text-lg font-semibold text-accent-red mt-6">4. Nhận thức về Rủi ro Đạo đức Học thuật (Ethics & Risk Perception - ERP)</h4>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
@@ -235,7 +209,6 @@
                             </div>
                              <p class="text-xs text-gray-500 mt-2 italic">Lưu ý: Phát biểu ERP3 là phát biểu ngược, điểm trung bình thấp thể hiện nhận thức đúng đắn của học sinh.</p>
 
-                            <!-- Table 5: RC -->
                             <h4 class="text-lg font-semibold text-secondary mt-6">5. Hành vi đối phó với Rủi ro (Risk Coping - RC)</h4>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
@@ -261,9 +234,7 @@
             </div>
         </div>
 
-        <!-- Game Demo Tab (Tab 3) - NỘI DUNG GAME THẬT ĐƯỢC TÍCH HỢP -->
         <div id="content-game" class="tab-content hidden space-y-8">
-            <!-- Header của Game -->
             <header class="text-center mb-8">
                 <h1 class="text-3xl font-extrabold text-indigo-700 flex items-center justify-center">
                     <svg data-lucide="sparkles" class="w-8 h-8 mr-2 text-yellow-400"></svg>
@@ -272,12 +243,9 @@
                 <p class="text-gray-500 mt-2">Luyện tập Nghe, Nói, Đọc, Viết với sự hỗ trợ của Gemini AI.</p>
             </header>
 
-            <!-- Vùng chứa ứng dụng game (Đổi ID để tránh xung đột) -->
             <div id="game-app-container" class="max-w-4xl mx-auto">
-                <!-- Nội dung game sẽ được render vào đây bằng JavaScript -->
-            </div>
+                </div>
             
-            <!-- Footer của Game -->
             <footer class="mt-10 text-center text-xs text-gray-400">
                 <p>Powered by Gemini AI - Tool for Academic Research & Language Learning</p>
             </footer>
@@ -404,6 +372,9 @@
             }
         }
 
+        // THÊM: Cờ trạng thái cho Game
+        let isGameInitialized = false;
+
         function changeTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
@@ -421,6 +392,22 @@
             if (activeBtn) {
                 activeBtn.classList.add('active', 'text-indigo-700');
                 activeBtn.classList.remove('text-gray-600');
+            }
+
+            // LOGIC KHỞI TẠO GAME KHI CHUYỂN TAB
+            if (tabId === 'game') {
+                if (!isGameInitialized) {
+                    game_renderApp(); // Render giao diện game tức thời
+                    game_generateTask(game_state.activeSkillId); // Tải bài tập ngầm
+                    isGameInitialized = true;
+                } else {
+                    // Đảm bảo giao diện game được render lại (để cập nhật Lucide Icons)
+                    game_renderApp(); 
+                    // Tải lại nếu chưa có task và không đang tải (ví dụ: bị lỗi tải lần trước)
+                    if (!game_state.task && !game_state.isLoading) {
+                         game_generateTask(game_state.activeSkillId);
+                    }
+                }
             }
         }
 
@@ -743,7 +730,11 @@
                 contentDiv.appendChild(buttonDiv);
                 taskDiv.appendChild(contentDiv);
             } else if (!game_state.isLoading) {
-                taskDiv.appendChild(document.createTextNode('Đang khởi tạo bài tập. Vui lòng đợi...'));
+                // Hiển thị thông báo chờ nếu chưa tải xong lần đầu
+                const initialLoadDiv = document.createElement('div');
+                initialLoadDiv.className = "text-center text-gray-500 p-8";
+                initialLoadDiv.textContent = 'Đang khởi tạo bài tập. Vui lòng đợi...';
+                taskDiv.appendChild(initialLoadDiv);
             }
             return taskDiv;
         };
@@ -807,9 +798,8 @@
                 });
             });
             
-            // 3. Khởi tạo Game (thay thế cho generateAllExercises())
-            game_renderApp(); // Render cấu trúc HTML của game
-            game_generateTask(game_state.activeSkillId); // Tải bài tập đầu tiên cho game
+            // 3. KHÔNG KHỞI TẠO GAME TẠI ĐÂY NỮA. 
+            // Game sẽ được khởi tạo trong hàm changeTab() khi người dùng click vào.
         };
     </script>
 </body>
